@@ -7,8 +7,25 @@
 using namespace sf;
 using namespace std;
 
-vector < pair<float, float> > bolet;
-vector < pair<float, float> > eBullet;
+
+vector < pair<float, float> > eMagazine;
+
+/*
+class player
+{
+public:
+    Sprite sprite;
+    int HP, maxHP;
+
+    player(Texture* texture)
+    {
+        this->maxHP = 100;
+        this->HP = this->maxHP;
+        this->sprite.setTexture(*texture);
+        this->setPosition()
+    }
+};
+*/
 
 class enemy
 {
@@ -19,30 +36,52 @@ public:
 
     enemy(Texture* texture)
     {
-        this-> maxHP = 10;
+        this-> maxHP = 5;
         this->HP = this->maxHP;
 
         this->sprite.setTexture(*texture);
+        this->sprite.setScale(0.5, 0.5);
 
-        this->sprite.setPosition(1000, rand() / (800 - this->sprite.getGlobalBounds().height));
+        this->sprite.setPosition(1100, rand() % (int)(800 - this->sprite.getGlobalBounds().height));
 
     }
 };
 
-int main()
+class magazine
+{
+public:
+    Sprite sprite;
+
+    magazine(Texture* texture, Vector2f position)
+    {
+        this->sprite.setTexture(*texture);
+        this->sprite.setPosition(position.x+100.f, position.y+25.f);
+    }
+};
+
+class mateor
+{
+public:
+    Sprite sprite;
+
+    mateor(Texture* texture)
+    {
+        this->sprite.setTexture(*texture);
+        this->sprite.setPosition( rand() % (int)(1100 - this->sprite.getGlobalBounds().width), 0.f);
+        this->sprite.setScale(0.5, 0.5);
+       
+    }
+};
+
+int main()                                                           //main function 
 {
     srand(time(NULL));
 
     RenderWindow window(VideoMode(1100, 800), "MISSION HORIZON");   //making window
     window.setFramerateLimit(60);
 
-    sf::Texture bulletTexture;                                      //Loading bullet
-    bulletTexture.loadFromFile("image/bullet1.png");
-    RectangleShape bullet(Vector2f(80.f, 20.f));
-    bullet.setTexture(&bulletTexture);
 
-    int loadTime = 21;
-
+    
     Texture bgtexture;                                              //making background
     if (!bgtexture.loadFromFile("background.jpg"))
     {
@@ -68,10 +107,20 @@ int main()
     RectangleShape player(Vector2f(100.f, 50.f));
     player.setTexture(&playerTexture);
     player.setPosition(0.f , 400.f);
+
+
+    sf::Texture bulletTexture;                                      //Loading bullet
+    bulletTexture.loadFromFile("image/bullet1.png");
+   // RectangleShape bullet(Vector2f(80.f, 20.f));
+    //bullet.setTexture(&bulletTexture);
+
+    Texture mateorTexture;                                          //Loading mateor
+    if (!mateorTexture.loadFromFile("mateor1.png")) exit(-1);
+
+
     
     SoundBuffer shotBuffer;                                         //sound effect
     shotBuffer.loadFromFile("sound/laser.ogg");
-
     Sound shot;          
     shot.setBuffer(shotBuffer);
 
@@ -84,29 +133,40 @@ int main()
     bgmusic.play();
 
     
-    Texture enemyTex;                                               //Enemy loading section
+    Texture enemyTex;                                               // Enemy loading 
     if (!enemyTex.loadFromFile("image/alien1.png"))
     {
         cout << "Failed to laod enemy1"; exit(-1);
     }
-    /*
-    RectangleShape alien(Vector2f(100.f, 135.f));
-    alien.setTexture(&enemyTex);
-    alien.setPosition(window.getSize().x, (player.getPosition().y)/400+3);
-    alien.setScale(0.5f, 0.5f);
+
+    Font font;                                                      //Font loading
+    font.loadFromFile("fonts/space.otf");
+    Text end;
+    end.setString("Game Over");
+    end.setPosition(1000.f, 400.f);
+    end.setScale(2.f, 2.f);
+    
+    
 
     RectangleShape ebullet(Vector2f(80.f, 20.f));
     ebullet.setTexture(&bulletTexture);
+       
+                                               //varibale initialization
+    int enemyloadTime = 250;
+    int eBulletLoad = 21;
+    int shootTimer = 21;  //player bullet loading time
+    int mateorTimer = 200;
+    int time = 0;
 
-    */
-    //enemy[0].push_back(make_pair(alien, eHP)); //loading first enemy in the vector        
+    int playerHP = 10;
+    vector <magazine> bullet; // player bullet vector
+    vector < enemy > alien1; // Enemy vector
+    vector <mateor> mateor1;
 
-    int enemyloadTime = 6;
-
-    vector< enemy > alien1;
+    
 
 
-    while (window.isOpen())                                         //Game loop
+    while (window.isOpen())                                                                        // GAME LOOP STARTS
     {
         Event event;
 
@@ -115,21 +175,30 @@ int main()
             if(event.type == Event::Closed)
                 window.close();
 
-            if ( (event.type == Event::MouseButtonPressed && event.key.code == Mouse::Left) || Keyboard::isKeyPressed(Keyboard::Space))                 //Bullet pressed tracking
+            if ( (event.type == Event::MouseButtonPressed && event.key.code == Mouse::Left) || Keyboard::isKeyPressed(Keyboard::Space))               //Bullet pressed tracking
             {
-                if (loadTime > 20)
+                if (shootTimer > 20)
                 {
-                    bolet.push_back(make_pair(player.getPosition().x + 100, player.getPosition().y + 25));
+                    bullet.push_back(magazine(&bulletTexture, player.getPosition()));
                     shot.play();
-                    loadTime = 1;
+                    shootTimer = 1;
                 }
+            }
+
+            if (eBulletLoad > 30)
+            {
+                for (size_t i = 0; i < alien1.size(); i++)  //making bullet for every enemy after 40 frame
+                {
+                    eMagazine.push_back(make_pair(alien1[i].sprite.getPosition().x, alien1[i].sprite.getPosition().y + 25));
+                }
+                eBulletLoad = 0;
             }
 
         }
 
-        if (!bolet.empty()) loadTime++;                                //bullet load time function
+       
 
-                                                                       //moving background effect
+                                                                                              //moving background effect
         background.move(-1.f, 0.f);
         bg2.move(-1.f, 0.f);
         
@@ -138,7 +207,8 @@ int main()
         if(bg2.getPosition().x == 0)
             background.setPosition( 1100.f , 0.f);
 
-        if (Keyboard::isKeyPressed(Keyboard::Key::A ))                //control setup
+
+        if (Keyboard::isKeyPressed(Keyboard::Key::A ))                                         //control setup
         {
             if(player.getPosition().x>0)
             player.move(-5.f, 0);
@@ -158,55 +228,119 @@ int main()
             if(player.getPosition().y >0)
             player.move(0, -5.f);
         }               
-                                                                                          //Enemy making factory
-        if (enemyloadTime > 10)
+
+                                                                                                 // all variable laoding time increment
+        if (!bullet.empty()) shootTimer++;
+        eBulletLoad++;
+        enemyloadTime++;
+        mateorTimer++;
+        time++;
+
+        if (mateorTimer > 100)                                                                  //Mateor generating factor
+        {
+            mateor1.push_back(&mateorTexture);
+            mateorTimer = 0;
+        }
+                                                                                                 //Enemy generating factory
+        if (enemyloadTime > 300)
         {
             alien1.push_back(&enemyTex);
             enemyloadTime = 0;
         }
-
-        for (size_t i = 0; i < alien1.size(); i++)
-        {
-            if (alien1[i].sprite.getPosition().x > 1000)
-                alien1[i].sprite.move(-1.f, 0.f);
+                                                                                                //bullet collision check
+        if (!bullet.empty())
+        {                                                                                
+            for (size_t i = 0; i < bullet.size(); i++)
+            {
+                for (size_t j = 0; j < alien1.size(); j++)
+                {
+                    
+                    if (bullet[i].sprite.getGlobalBounds().intersects(alien1[j].sprite.getGlobalBounds()) ) // is collided with alien?
+                    {
+                        alien1[j].HP--;
+                        bullet.erase(bullet.begin() + i);
+                        break;
+                    }
+                
+                     if (alien1[j].HP <= 0)   alien1.erase(alien1.begin() + j);
+                    
+                    
+                }
+            }
         }
-        enemyloadTime++;
+        for (size_t i = 0; i < alien1.size(); i++)                                                      //alien player collision check
+        {
+            if (alien1[i].sprite.getGlobalBounds().intersects(player.getGlobalBounds()))
+            {
+                playerHP -= 5;
+                alien1.erase(alien1.begin() + i);
+
+            }
+        }
+        
+        
         
 
-       // if (enemyloadTime > 5) { eBullet.push_back(make_pair(alien.getPosition().x, alien.getPosition().y / 2)); enemyloadTime = 0; }
-        
-       
-
+                                                                                                //Randering section
         window.clear();
         window.draw(background);
         window.draw(bg2);
         window.draw(player);
-        
-        /*
-        if (!eBullet.empty() )                                                                //enemy bullet
+                                                                        //alien 1 display
+        for (size_t i = 0; i < alien1.size(); i++)                                             
         {
-            for (size_t i = 0; i < eBullet.size(); i++)
-            {
-                ebullet.setPosition(eBullet[i].first, eBullet[i].second);
-                ebullet.move(-1.f, 0.f);
-                window.draw(ebullet);
-            }
+            if (alien1[i].sprite.getPosition().x > -100) alien1[i].sprite.move(-1.f, 0.f); //appeared from behind effect
+              
+            window.draw(alien1[i].sprite);
         }
-        */
-
-        if (!bolet.empty() )                                                                   //Bullet firing animation of player
+        
+        if (!eMagazine.empty() )                                       //enemy bullet display
         {
-            for (size_t i = 0; i < bolet.size(); i++)
+            for (size_t i = 0; i < eMagazine.size(); i++)
             {
-                bolet[i].first += 2;     //position change per frame
-
-                if(bolet[i].first < 1200)
-                { 
-                    bullet.setPosition(bolet[i].first, bolet[i].second);                         //bullet dynamic position changing
-                    window.draw(bullet);
+                eMagazine[i].first -= 2;
+              
+                if (eMagazine[i].first < -100)
+                {
+                    ebullet.setPosition(eMagazine[i].first, eMagazine[i].second);
+                    window.draw(ebullet);
                 }
                 
             }
+        }
+        
+
+        if (!bullet.empty() )                                         //Bullet firing animation of player
+        {
+            for (size_t i = 0; i < bullet.size(); i++)
+            {
+                bullet[i].sprite.move(2.f, 0.f);     //position change per frame
+
+                if(bullet[i].sprite.getPosition().x < 1200)
+                { 
+                    //bullet.setPosition(magazine[i].first, magazine[i].second);      //bullet dynamic position changing
+                    window.draw(bullet[i].sprite);
+                }
+                
+            }
+        }
+
+        if (time > 510 && mateor1.empty() != true )
+        {
+            for (size_t i = 0; i < mateor1.size(); i++)
+            {
+                mateor1[i].sprite.move(-1.f, 1.f);
+
+                if (mateor1[i].sprite.getPosition().x > 1100) mateor1.erase(mateor1.begin() + i);
+
+                window.draw(mateor1[i].sprite);
+            }
+        }
+        else time = 0;
+
+        if (playerHP <= 0)               //player HP check
+        {
+            window.draw(end);
         }
 
        
