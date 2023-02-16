@@ -36,7 +36,7 @@ public:
 
     enemy(Texture* texture)
     {
-        this-> maxHP = 5;
+        this-> maxHP = 3;
         this->HP = this->maxHP;
 
         this->sprite.setTexture(*texture);
@@ -44,6 +44,24 @@ public:
 
         this->sprite.setPosition(1100, rand() % (int)(800 - this->sprite.getGlobalBounds().height));
 
+    }
+};
+
+class sat
+{
+public:
+    Sprite sprite;
+    int HP, maxHP;
+
+    sat(Texture* texture)
+    {
+        this->maxHP = 3;
+        this->HP = this->maxHP;
+
+        this->sprite.setTexture(*texture);
+        this->sprite.setScale(0.2, 0.2);
+
+        this->sprite.setPosition(1100, rand() % (int)800 );
     }
 };
 
@@ -80,7 +98,7 @@ int main()                                                           //main func
     RenderWindow window(VideoMode(1100, 800), "MISSION HORIZON");   //making window
     window.setFramerateLimit(60);
 
-
+    int point = 0;
     
     Texture bgtexture;                                              //making background
     if (!bgtexture.loadFromFile("background.jpg"))
@@ -119,18 +137,21 @@ int main()                                                           //main func
 
 
     
-    SoundBuffer shotBuffer;                                         //sound effect
+    SoundBuffer shotBuffer;                                         //sound and music effect
     shotBuffer.loadFromFile("sound/laser.ogg");
     Sound shot;          
     shot.setBuffer(shotBuffer);
+    shot.setVolume(5);
 
-    Music bgmusic;                                                  //music effect
+    Music bgmusic;                                                  
     if (!bgmusic.openFromFile("sound/space.wav"))
     {
         cout << "Failed to load music";
         exit(-1);
     }
     bgmusic.play();
+    bgmusic.setLoop(true);
+    bgmusic.setVolume(10);
 
     
     Texture enemyTex;                                               // Enemy loading 
@@ -139,12 +160,47 @@ int main()                                                           //main func
         cout << "Failed to laod enemy1"; exit(-1);
     }
 
+    Texture satelliteTex1;
+    Texture satelliteTex2;
+    Texture satelliteTex3;
+    satelliteTex1.loadFromFile("image/satellite.png");
+    satelliteTex2.loadFromFile("image/satellite1.png");
+    satelliteTex3.loadFromFile("image/satellite2.png");
+    
+
     Font font;                                                      //Font loading
     font.loadFromFile("fonts/space.otf");
     Text end;
     end.setString("Game Over");
     end.setPosition(1000.f, 400.f);
     end.setScale(2.f, 2.f);
+
+    Text score;                                                     //score loading
+    score.setFont(font);
+    score.setString("SCORE : ");
+    score.setPosition(10.f, 10.f);
+    Text pnt;
+    pnt.setFont(font);
+    pnt.setPosition(score.getGlobalBounds().width , 10);
+
+    RectangleShape HP(Vector2f(200.f, 30.f ) );                     //health display
+    HP.setFillColor(Color::Green);
+    HP.setPosition(window.getSize().x/2 -100.f,10.f );
+
+    RectangleShape HPbox(HP.getSize());
+    HPbox.setOutlineColor(Color::White);
+    HPbox.setOutlineThickness(3.f);
+    HPbox.setFillColor(Color::Transparent);
+    HPbox.setPosition(HP.getPosition() );
+
+    Text health;                     //health percentage text
+    health.setFont(font);
+    health.setPosition(HP.getPosition().x +80.f, HP.getPosition().y + 0.f);
+    health.setFillColor(Color::White);
+
+    
+
+
     
     
 
@@ -157,11 +213,13 @@ int main()                                                           //main func
     int shootTimer = 21;  //player bullet loading time
     int mateorTimer = 200;
     int time = 0;
+    
 
-    int playerHP = 10;
+    int playerHP = 50;
     vector <magazine> bullet; // player bullet vector
     vector < enemy > alien1; // Enemy vector
     vector <mateor> mateor1;
+    vector <sat> satellite;
 
     
 
@@ -236,7 +294,10 @@ int main()                                                           //main func
         mateorTimer++;
         time++;
 
-        if (mateorTimer > 100)                                                                  //Mateor generating factor
+        HP.setSize(Vector2f( (playerHP * 200) / 50.f , 30.f)); //Health dynamic display
+        
+
+        if (mateorTimer > 300)                                                                  //Mateor generating factory
         {
             mateor1.push_back(&mateorTexture);
             mateorTimer = 0;
@@ -247,27 +308,15 @@ int main()                                                           //main func
             alien1.push_back(&enemyTex);
             enemyloadTime = 0;
         }
-                                                                                                //bullet collision check
-        if (!bullet.empty())
-        {                                                                                
-            for (size_t i = 0; i < bullet.size(); i++)
-            {
-                for (size_t j = 0; j < alien1.size(); j++)
-                {
-                    
-                    if (bullet[i].sprite.getGlobalBounds().intersects(alien1[j].sprite.getGlobalBounds()) ) // is collided with alien?
-                    {
-                        alien1[j].HP--;
-                        bullet.erase(bullet.begin() + i);
-                        break;
-                    }
-                
-                     if (alien1[j].HP <= 0)   alien1.erase(alien1.begin() + j);
-                    
-                    
-                }
-            }
+        
+        if (time % 200 == 0)
+        {
+            if (time % 400 == 0)     satellite.push_back(&satelliteTex1);
+            else if(time % 600 ==0)  satellite.push_back(&satelliteTex2);
+            else                     satellite.push_back(&satelliteTex3);
+            
         }
+
         for (size_t i = 0; i < alien1.size(); i++)                                                      //alien player collision check
         {
             if (alien1[i].sprite.getGlobalBounds().intersects(player.getGlobalBounds()))
@@ -275,6 +324,57 @@ int main()                                                           //main func
                 playerHP -= 5;
                 alien1.erase(alien1.begin() + i);
 
+            }
+
+            for (size_t j = 0; j < satellite.size(); j++) //satellite alien overlaping check
+            {
+                if (alien1[i].sprite.getGlobalBounds().intersects(satellite[j].sprite.getGlobalBounds()))
+                {
+                    satellite.erase(satellite.begin() + j); //if overlaped delete it
+                }
+            }
+        }
+
+                                                                                                //bullet collision check
+        if (!bullet.empty())
+        {                                                                                
+            for (size_t i = 0; i < bullet.size(); i++) //for bullet
+            {
+                for (size_t j = 0; j < alien1.size(); j++) //for allien
+                {
+                    
+                    if (bullet[i].sprite.getGlobalBounds().intersects(alien1[j].sprite.getGlobalBounds()) ) // is collided with alien?
+                    {
+                        alien1[j].HP--;
+                        
+                        bullet.erase(bullet.begin() + i);
+                        break;
+                    }
+                
+                    if (alien1[j].HP <= 0)
+                    {
+                        point += 3;
+                        alien1.erase(alien1.begin() + j);
+                    }
+                    
+                    
+                }
+
+                for (size_t k = 0; k < satellite.size(); k++)  //for satellite
+                {
+                    if (bullet[i].sprite.getGlobalBounds().intersects(satellite[k].sprite.getGlobalBounds()))//is collided with satellite?
+                    {
+                        satellite[k].HP--;
+                        bullet.erase(bullet.begin() + i);
+                        break;
+                    }
+
+                    if (satellite[k].HP <= 0)
+                    {
+                        satellite.erase(satellite.begin() + k);
+                        point += 3;
+                    }
+                }
             }
         }
         
@@ -325,25 +425,50 @@ int main()                                                           //main func
             }
         }
 
-        if (time > 510 && mateor1.empty() != true )
+       
+        for (size_t i = 0; i < mateor1.size(); i++)          //mateor printing
         {
-            for (size_t i = 0; i < mateor1.size(); i++)
+            mateor1[i].sprite.move(-1.f, 1.f);
+
+            if (mateor1[i].sprite.getPosition().x > 1100) 
             {
-                mateor1[i].sprite.move(-1.f, 1.f);
-
-                if (mateor1[i].sprite.getPosition().x > 1100) mateor1.erase(mateor1.begin() + i);
-
-                window.draw(mateor1[i].sprite);
+                mateor1.erase(mateor1.begin() + i); continue;
             }
-        }
-        else time = 0;
 
+            window.draw(mateor1[i].sprite);
+        }
+
+        for (size_t i = 0; i < satellite.size(); i++)
+        {
+            satellite[i].sprite.move(-1.f, 0.f);
+
+            if (satellite[i].sprite.getPosition().x < -200)
+            {
+                satellite.erase(satellite.begin() + i); continue;
+            }
+
+            window.draw(satellite[i].sprite);
+        }
+        
+        
         if (playerHP <= 0)               //player HP check
         {
             window.draw(end);
+            window.close();
         }
 
-       
+
+        window.draw(score);             //printing score
+        pnt.setString(to_string(point));
+        window.draw(pnt);
+
+        if (playerHP < 20) HP.setFillColor(Color::Red);     //printing Health
+        window.draw(HPbox);
+        window.draw(HP);
+        health.setString(to_string( (playerHP * 100) / 50 ) );
+        window.draw(health);
+        
+
         window.display();
     }
 
