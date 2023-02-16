@@ -73,6 +73,7 @@ public:
     magazine(Texture* texture, Vector2f position)
     {
         this->sprite.setTexture(*texture);
+        this->sprite.setScale(0.5f, 1.f);
         this->sprite.setPosition(position.x+100.f, position.y+25.f);
     }
 };
@@ -93,7 +94,7 @@ public:
 
 int main()                                                           //main function 
 {
-    srand(time(NULL));
+    //srand(time(NULL));
 
     RenderWindow window(VideoMode(1100, 800), "MISSION HORIZON");   //making window
     window.setFramerateLimit(60);
@@ -155,17 +156,26 @@ int main()                                                           //main func
 
     
     Texture enemyTex;                                               // Enemy loading 
-    if (!enemyTex.loadFromFile("image/alien1.png"))
-    {
-        cout << "Failed to laod enemy1"; exit(-1);
-    }
+    Texture enemyTex1;
+    Texture enemyTex2;
+    //Texture enemyTex3;
+    //Texture enemyTex4;
+    //Texture enemyTex5;
+    enemyTex.loadFromFile("image/alien.png");
+    enemyTex1.loadFromFile("image/alien1.png");
+    enemyTex2.loadFromFile("image/alien2.png");
+    //enemyTex3.loadFromFile("image/alien3.png");
+    //enemyTex4.loadFromFile("image/alien4.png");
+    //enemyTex5.loadFromFile("image/alien5.png");
 
     Texture satelliteTex1;
     Texture satelliteTex2;
     Texture satelliteTex3;
+    Texture spacestationTex;
     satelliteTex1.loadFromFile("image/satellite.png");
     satelliteTex2.loadFromFile("image/satellite1.png");
     satelliteTex3.loadFromFile("image/satellite2.png");
+    spacestationTex.loadFromFile("international-space-station.png");
     
 
     Font font;                                                      //Font loading
@@ -235,11 +245,10 @@ int main()                                                           //main func
 
             if ( (event.type == Event::MouseButtonPressed && event.key.code == Mouse::Left) || Keyboard::isKeyPressed(Keyboard::Space))               //Bullet pressed tracking
             {
-                if (shootTimer > 20)
+                if (time % 20 ==0)
                 {
                     bullet.push_back(magazine(&bulletTexture, player.getPosition()));
                     shot.play();
-                    shootTimer = 1;
                 }
             }
 
@@ -303,17 +312,23 @@ int main()                                                           //main func
             mateorTimer = 0;
         }
                                                                                                  //Enemy generating factory
-        if (enemyloadTime > 300)
+        if (time % 300 == 0)
         {
-            alien1.push_back(&enemyTex);
-            enemyloadTime = 0;
+            if (time % 300 == 0)        alien1.push_back(&enemyTex);
+            else if (time % 800 == 0)        alien1.push_back(&enemyTex1);
+            else if (time % 1400 == 0)        alien1.push_back(&enemyTex2);
+            //else if (time % 1100 == 0)        alien1.push_back(&enemyTex3);
+            //else if (time % 1400 == 0)        alien1.push_back(&enemyTex4);
+           // else if (time % 1700 == 0)        alien1.push_back(&enemyTex5);
         }
         
-        if (time % 200 == 0)
+        
+        if (time % 200 == 0)                                                                    //satellite generating factory
         {
-            if (time % 400 == 0)     satellite.push_back(&satelliteTex1);
-            else if(time % 600 ==0)  satellite.push_back(&satelliteTex2);
-            else                     satellite.push_back(&satelliteTex3);
+            if (time % 400 == 0)       satellite.push_back(&satelliteTex1);
+            else if (time % 700 == 0)  satellite.push_back(&satelliteTex2);
+            else if (time % 1100 == 0) satellite.push_back(&spacestationTex);
+            else                       satellite.push_back(&satelliteTex3);
             
         }
 
@@ -410,7 +425,8 @@ int main()                                                           //main func
                                                                         //alien 1 display
         for (size_t i = 0; i < alien1.size(); i++)                                             
         {
-            if (alien1[i].sprite.getPosition().x > -100) alien1[i].sprite.move(-1.f, 0.f); //appeared from behind effect
+            if (alien1[i].sprite.getPosition().x > -200) alien1[i].sprite.move(-1.f, 0.f); //appeared from behind effect
+            else alien1.erase(alien1.begin() + i);
               
             window.draw(alien1[i].sprite);
         }
@@ -437,11 +453,12 @@ int main()                                                           //main func
             {
                 bullet[i].sprite.move(6.f, 0.f);     //position change per frame
 
-                if(bullet[i].sprite.getPosition().x < 1200)
-                { 
+                if (bullet[i].sprite.getPosition().x < 1200)
+                {
                     //bullet.setPosition(magazine[i].first, magazine[i].second);      //bullet dynamic position changing
                     window.draw(bullet[i].sprite);
                 }
+                else bullet.erase(bullet.begin() + i);
                 
             }
         }
@@ -459,7 +476,7 @@ int main()                                                           //main func
             window.draw(mateor1[i].sprite);
         }
 
-        for (size_t i = 0; i < satellite.size(); i++)
+        for (size_t i = 0; i < satellite.size(); i++)      //satellite printing
         {
             satellite[i].sprite.move(-1.f, 0.f);
 
