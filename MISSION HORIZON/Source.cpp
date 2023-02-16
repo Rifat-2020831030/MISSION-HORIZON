@@ -317,6 +317,58 @@ int main()                                                           //main func
             
         }
 
+        
+
+                                                                                               //bullet collision check
+        if (!bullet.empty())
+        {                                                                                
+            for (size_t i = 0; i < bullet.size(); i++) //for bullet
+            {
+                bool alreadyCollided = false;
+
+                for (size_t j = 0; j < alien1.size(); j++) //for allien
+                {
+                    
+                    if (bullet[i].sprite.getGlobalBounds().intersects(alien1[j].sprite.getGlobalBounds()) ) // is collided with alien?
+                    {
+                        alien1[j].HP--;
+                        
+                        bullet.erase(bullet.begin() + i);
+                        alreadyCollided = true;
+                        break;
+                    }
+                
+                    if (alien1[j].HP <= 0)
+                    {
+                        point += 3;
+                        alien1.erase(alien1.begin() + j);
+                    }
+                    
+                    
+                }
+
+                if (alreadyCollided == false)
+                {
+                    for (size_t k = 0; k < satellite.size(); k++)  //for satellite
+                    {
+                        if (bullet[i].sprite.getGlobalBounds().intersects(satellite[k].sprite.getGlobalBounds()))//is collided with satellite?
+                        {
+                            satellite[k].HP--;
+                            bullet.erase(bullet.begin() + i);
+                            break;
+                        }
+
+                        if (satellite[k].HP <= 0)
+                        {
+                            satellite.erase(satellite.begin() + k);
+                            point += 3;
+                        }
+                    }
+                }
+                
+            }
+        }
+
         for (size_t i = 0; i < alien1.size(); i++)                                                      //alien player collision check
         {
             if (alien1[i].sprite.getGlobalBounds().intersects(player.getGlobalBounds()))
@@ -332,50 +384,19 @@ int main()                                                           //main func
                 {
                     satellite.erase(satellite.begin() + j); //if overlaped delete it
                 }
+
             }
         }
 
-                                                                                                //bullet collision check
-        if (!bullet.empty())
-        {                                                                                
-            for (size_t i = 0; i < bullet.size(); i++) //for bullet
+        for (size_t i = 0; i < satellite.size(); i++)
+        {
+            if (satellite[i].sprite.getGlobalBounds().intersects(player.getGlobalBounds())) //player satellite collision check
             {
-                for (size_t j = 0; j < alien1.size(); j++) //for allien
-                {
-                    
-                    if (bullet[i].sprite.getGlobalBounds().intersects(alien1[j].sprite.getGlobalBounds()) ) // is collided with alien?
-                    {
-                        alien1[j].HP--;
-                        
-                        bullet.erase(bullet.begin() + i);
-                        break;
-                    }
-                
-                    if (alien1[j].HP <= 0)
-                    {
-                        point += 3;
-                        alien1.erase(alien1.begin() + j);
-                    }
-                    
-                    
-                }
+                playerHP -= 5;
+                satellite.erase(satellite.begin() + i);
 
-                for (size_t k = 0; k < satellite.size(); k++)  //for satellite
-                {
-                    if (bullet[i].sprite.getGlobalBounds().intersects(satellite[k].sprite.getGlobalBounds()))//is collided with satellite?
-                    {
-                        satellite[k].HP--;
-                        bullet.erase(bullet.begin() + i);
-                        break;
-                    }
-
-                    if (satellite[k].HP <= 0)
-                    {
-                        satellite.erase(satellite.begin() + k);
-                        point += 3;
-                    }
-                }
             }
+       
         }
         
         
@@ -414,7 +435,7 @@ int main()                                                           //main func
         {
             for (size_t i = 0; i < bullet.size(); i++)
             {
-                bullet[i].sprite.move(2.f, 0.f);     //position change per frame
+                bullet[i].sprite.move(6.f, 0.f);     //position change per frame
 
                 if(bullet[i].sprite.getPosition().x < 1200)
                 { 
