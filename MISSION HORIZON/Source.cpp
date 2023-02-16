@@ -8,7 +8,7 @@ using namespace sf;
 using namespace std;
 
 
-vector < pair<float, float> > eMagazine;
+//vector < pair<float, float> > eMagazine;
 
 /*
 class player
@@ -33,11 +33,13 @@ class enemy
 public:
     Sprite sprite;
     int HP, maxHP;
+    int eBulletLoad;
 
     enemy(Texture* texture)
     {
         this-> maxHP = 3;
         this->HP = this->maxHP;
+        this->eBulletLoad = 0;
 
         this->sprite.setTexture(*texture);
         this->sprite.setScale(0.5, 0.5);
@@ -73,8 +75,20 @@ public:
     magazine(Texture* texture, Vector2f position)
     {
         this->sprite.setTexture(*texture);
-        this->sprite.setScale(0.5f, 1.f);
+        this->sprite.setScale(1.f, 0.5f);
         this->sprite.setPosition(position.x+100.f, position.y+25.f);
+    }
+};
+class emagazine
+{
+public:
+    Sprite sprite;
+   
+    emagazine(Texture* texture, Vector2f position)
+    {
+        this->sprite.setTexture(*texture);
+        this->sprite.setScale(0.5f, 1.f);
+        this->sprite.setPosition(position.x , position.y + 25.f);
     }
 };
 
@@ -129,9 +143,11 @@ int main()                                                           //main func
 
 
     sf::Texture bulletTexture;                                      //Loading bullet
-    bulletTexture.loadFromFile("image/bullet1.png");
+    bulletTexture.loadFromFile("image/laser.png");
    // RectangleShape bullet(Vector2f(80.f, 20.f));
     //bullet.setTexture(&bulletTexture);
+    Texture ebulletTexture;                                   
+    ebulletTexture.loadFromFile("image/bullet1.png");
 
     Texture mateorTexture;                                          //Loading mateor
     if (!mateorTexture.loadFromFile("mateor1.png")) exit(-1);
@@ -215,11 +231,10 @@ int main()                                                           //main func
     
 
     RectangleShape ebullet(Vector2f(80.f, 20.f));
-    ebullet.setTexture(&bulletTexture);
+    ebullet.setTexture(&ebulletTexture);
        
                                                //varibale initialization
     int enemyloadTime = 250;
-    int eBulletLoad = 21;
     int shootTimer = 21;  //player bullet loading time
     int mateorTimer = 200;
     int time = 0;
@@ -230,6 +245,7 @@ int main()                                                           //main func
     vector < enemy > alien1; // Enemy vector
     vector <mateor> mateor1;
     vector <sat> satellite;
+    vector <emagazine> eBullet;
 
     
 
@@ -245,26 +261,20 @@ int main()                                                           //main func
 
             if ( (event.type == Event::MouseButtonPressed && event.key.code == Mouse::Left) || Keyboard::isKeyPressed(Keyboard::Space))               //Bullet pressed tracking
             {
-                if (time % 20 ==0)
+                if (shootTimer > 20)
                 {
                     bullet.push_back(magazine(&bulletTexture, player.getPosition()));
                     shot.play();
+                    shootTimer = 1;
                 }
             }
 
-            if (eBulletLoad > 30)
-            {
-                for (size_t i = 0; i < alien1.size(); i++)  //making bullet for every enemy after 40 frame
-                {
-                    eMagazine.push_back(make_pair(alien1[i].sprite.getPosition().x, alien1[i].sprite.getPosition().y + 25));
-                }
-                eBulletLoad = 0;
-            }
+           
 
         }
 
        
-
+  
                                                                                               //moving background effect
         background.move(-1.f, 0.f);
         bg2.move(-1.f, 0.f);
@@ -297,13 +307,16 @@ int main()                                                           //main func
         }               
 
                                                                                                  // all variable laoding time increment
-        if (!bullet.empty()) shootTimer++;
-        eBulletLoad++;
+        shootTimer++;
         enemyloadTime++;
         mateorTimer++;
         time++;
 
         HP.setSize(Vector2f( (playerHP * 200) / 50.f , 30.f)); //Health dynamic display
+
+        
+
+
         
 
         if (mateorTimer > 300)                                                                  //Mateor generating factory
@@ -334,7 +347,7 @@ int main()                                                           //main func
 
         
 
-                                                                                               //bullet collision check
+                                                                                               //player bullet collision check
         if (!bullet.empty())
         {                                                                                
             for (size_t i = 0; i < bullet.size(); i++) //for bullet
@@ -384,6 +397,15 @@ int main()                                                           //main func
             }
         }
 
+        for (size_t i = 0; i < eBullet.size(); i++)                                                     //enemy bullet collision check
+        {
+            if (eBullet[i].sprite.getGlobalBounds().intersects(player.getGlobalBounds()))
+            {
+                playerHP--;
+                eBullet.erase(eBullet.begin() + i);
+            }
+        }
+
         for (size_t i = 0; i < alien1.size(); i++)                                                      //alien player collision check
         {
             if (alien1[i].sprite.getGlobalBounds().intersects(player.getGlobalBounds()))
@@ -393,13 +415,21 @@ int main()                                                           //main func
 
             }
 
-            for (size_t j = 0; j < satellite.size(); j++) //satellite alien overlaping check
+            for (size_t j = 0; j < satellite.size(); j++)                                               //satellite alien overlaping check
             {
                 if (alien1[i].sprite.getGlobalBounds().intersects(satellite[j].sprite.getGlobalBounds()))
                 {
                     satellite.erase(satellite.begin() + j); //if overlaped delete it
                 }
 
+            }
+
+            alien1[i].eBulletLoad++;                                                                  //enemy bullet generating
+             
+            if (alien1[i].eBulletLoad > 400) //make a bullet for every alien after 100s of creation
+            {
+                eBullet.push_back(emagazine(&ebulletTexture, alien1[i].sprite.getPosition()));
+                alien1[i].eBulletLoad = 0;
             }
         }
 
@@ -431,18 +461,19 @@ int main()                                                           //main func
             window.draw(alien1[i].sprite);
         }
         
-        if (!eMagazine.empty() )                                       //enemy bullet display
+                                             //enemy bullet display
+        if (!eBullet.empty())
         {
-            for (size_t i = 0; i < eMagazine.size(); i++)
+            for (size_t i = 0; i < eBullet.size(); i++)
             {
-                eMagazine[i].first -= 2;
-              
-                if (eMagazine[i].first < -100)
+                eBullet[i].sprite.move(-2.f, 0.f);
+
+                if (eBullet[i].sprite.getPosition().x > -100)
                 {
-                    ebullet.setPosition(eMagazine[i].first, eMagazine[i].second);
-                    window.draw(ebullet);
+                    window.draw(eBullet[i].sprite);
                 }
-                
+                else eBullet.erase(eBullet.begin() + i);
+
             }
         }
         
