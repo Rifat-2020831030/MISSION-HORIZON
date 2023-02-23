@@ -62,6 +62,7 @@ public:
 
         this->sprite.setTexture(*texture);
         this->sprite.setScale(0.2, 0.2);
+        this->sprite.setOrigin(this->sprite.getGlobalBounds().width / 2, this->sprite.getGlobalBounds().height / 2);
 
         this->sprite.setPosition(1100, rand() % (int)800 );
     }
@@ -191,7 +192,7 @@ int main()                                                           //main func
     satelliteTex1.loadFromFile("image/satellite.png");
     satelliteTex2.loadFromFile("image/satellite1.png");
     satelliteTex3.loadFromFile("image/satellite2.png");
-    spacestationTex.loadFromFile("international-space-station.png");
+    spacestationTex.loadFromFile("image/international-space-station.png");
     
 
     Font font;                                                      //Font loading
@@ -272,7 +273,6 @@ int main()                                                           //main func
            
 
         }
-
        
   
                                                                                               //moving background effect
@@ -340,7 +340,7 @@ int main()                                                           //main func
         {
             if (time % 400 == 0)       satellite.push_back(&satelliteTex1);
             else if (time % 700 == 0)  satellite.push_back(&satelliteTex2);
-            else if (time % 1100 == 0) satellite.push_back(&spacestationTex);
+            else if (time % 1100 == 0) { satellite.push_back(&spacestationTex);  }
             else                       satellite.push_back(&satelliteTex3);
             
         }
@@ -360,7 +360,7 @@ int main()                                                           //main func
                     if (bullet[i].sprite.getGlobalBounds().intersects(alien1[j].sprite.getGlobalBounds()) ) // is collided with alien?
                     {
                         alien1[j].HP--;
-                        
+                        alien1[j].sprite.move(10.f, 0.f); //backward force
                         bullet.erase(bullet.begin() + i);
                         alreadyCollided = true;
                         break;
@@ -371,6 +371,9 @@ int main()                                                           //main func
                         point += 3;
                         alien1.erase(alien1.begin() + j);
                     }
+
+                   // if (bullet[i].sprite.getGlobalBounds() == alien1[j].sprite.getGlobalBounds() )
+                   //    alien1[j].sprite.move(0.f, 5.f);
                     
                     
                 }
@@ -382,6 +385,7 @@ int main()                                                           //main func
                         if (bullet[i].sprite.getGlobalBounds().intersects(satellite[k].sprite.getGlobalBounds()))//is collided with satellite?
                         {
                             satellite[k].HP--;
+                            satellite[k].sprite.move(10.f, 0.f); //backward force
                             bullet.erase(bullet.begin() + i);
                             break;
                         }
@@ -510,6 +514,7 @@ int main()                                                           //main func
         for (size_t i = 0; i < satellite.size(); i++)      //satellite printing
         {
             satellite[i].sprite.move(-1.f, 0.f);
+            //satellite[i].sprite.rotate(2.f);
 
             if (satellite[i].sprite.getPosition().x < -200)
             {
