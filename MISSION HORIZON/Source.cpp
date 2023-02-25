@@ -3,29 +3,12 @@
 #include <iostream>
 #include <vector>
 #include <math.h>
+#include <fstream>
+#include "Menu.h"
 
 using namespace sf;
 using namespace std;
 
-
-//vector < pair<float, float> > eMagazine;
-
-/*
-class player
-{
-public:
-    Sprite sprite;
-    int HP, maxHP;
-
-    player(Texture* texture)
-    {
-        this->maxHP = 100;
-        this->HP = this->maxHP;
-        this->sprite.setTexture(*texture);
-        this->setPosition()
-    }
-};
-*/
 
 class enemy
 {
@@ -107,6 +90,56 @@ public:
     }
 };
 
+void mainmenu(RenderWindow& window)
+{
+    Clock clock;
+    Time time;
+
+    RectangleShape loading(Vector2f(0, 10));                                          //loading section
+    loading.setPosition(window.getSize().x / 2 - 200, window.getSize().y / 2 - 100);
+    loading.setFillColor(Color::White);
+    loading.setOutlineColor(Color::Black);
+
+    Texture texture;                                                                   //loading background
+    texture.loadFromFile("30.png");
+    RectangleShape bg(Vector2f(window.getSize().x, window.getSize().y));
+    bg.setTexture(&texture);
+
+    Font font;                                                                         //loading text
+    font.loadFromFile("fonts/ModernWarfare.ttf");
+    Text loadingTxt;
+    loadingTxt.setFont(font);
+    loadingTxt.setString("Loading...");
+    loadingTxt.setCharacterSize(50);
+    loadingTxt.setPosition(window.getSize().x / 2 - 100, window.getSize().y / 2 - 200);
+
+
+    while (window.isOpen())
+    {
+        Event event;
+        while (window.pollEvent(event))
+        {
+            if (event.type == Event::Closed)
+                window.close();
+        }
+
+        //time = clock.getElapsedTime().asSeconds;
+
+
+        float temp = clock.getElapsedTime().asSeconds() * 40;
+
+        if (temp >= 350) return;
+
+        loading.setSize(Vector2f(temp, 10.f));
+
+        window.clear();
+        window.draw(bg);
+        window.draw(loading);
+        window.draw(loadingTxt);
+        window.display();
+    }
+}
+
 int main()                                                           //main function 
 {
     //srand(time(NULL));
@@ -114,7 +147,34 @@ int main()                                                           //main func
     RenderWindow window(VideoMode(1100, 800), "MISSION HORIZON");   //making window
     window.setFramerateLimit(60);
 
-    int point = 0;
+    bool mainMenu = true;                                                                                       //menu section
+    Menu menu(window.getSize().x, window.getSize().y);
+
+    Texture texture;
+    texture.loadFromFile("menu.jpg");
+    RectangleShape menuBackground(Vector2f(window.getSize()));
+    menuBackground.setTexture(&texture);
+
+    SoundBuffer menuChng;
+    SoundBuffer menuSlct;
+    menuChng.loadFromFile("selection change.wav");
+    menuSlct.loadFromFile("button pressed.wav");
+    Sound select;
+    Sound change;
+    change.setBuffer(menuChng);
+    select.setBuffer(menuSlct);
+
+    sf::Music menuMusic;
+    menuMusic.openFromFile("menuMusic.wav");
+    menuMusic.setVolume(50);
+    menuMusic.setLoop(true);
+    menuMusic.play();
+
+    int point = 0 , max_score=0;                                    //score setting
+    fstream file;
+    file.open("high score.txt");
+    file >> max_score;
+    file.close();
     
     Texture bgtexture;                                              //making background
     if (!bgtexture.loadFromFile("background.jpg"))
@@ -161,13 +221,12 @@ int main()                                                           //main func
     shot.setBuffer(shotBuffer);
     shot.setVolume(5);
 
-    Music bgmusic;                                                  
+    Music bgmusic; 
     if (!bgmusic.openFromFile("sound/space.wav"))
     {
         cout << "Failed to load music";
         exit(-1);
     }
-    bgmusic.play();
     bgmusic.setLoop(true);
     bgmusic.setVolume(10);
 
@@ -197,10 +256,6 @@ int main()                                                           //main func
 
     Font font;                                                      //Font loading
     font.loadFromFile("fonts/space.otf");
-    Text end;
-    end.setString("Game Over");
-    end.setPosition(1000.f, 400.f);
-    end.setScale(2.f, 2.f);
 
     Text score;                                                     //score loading
     score.setFont(font);
@@ -225,13 +280,9 @@ int main()                                                           //main func
     health.setPosition(HP.getPosition().x +80.f, HP.getPosition().y + 0.f);
     health.setFillColor(Color::White);
 
-    
+     
 
-
-    
-    
-
-    RectangleShape ebullet(Vector2f(80.f, 20.f));
+    RectangleShape ebullet(Vector2f(80.f, 20.f));  //enemy bullet
     ebullet.setTexture(&ebulletTexture);
        
                                                //varibale initialization
@@ -239,6 +290,7 @@ int main()                                                           //main func
     int shootTimer = 21;  //player bullet loading time
     int mateorTimer = 200;
     int time = 0;
+    int temp = 0;
     
 
     int playerHP = 50;
@@ -257,291 +309,365 @@ int main()                                                           //main func
 
         while (window.pollEvent(event))                             //event loop
         {
-            if(event.type == Event::Closed)
+            switch (event.type)                                     //menu control section
+            {
+                /*
+            case sf::Event::Closed:
                 window.close();
+                break;
+                */
 
-            if ( (event.type == Event::MouseButtonPressed && event.key.code == Mouse::Left) || Keyboard::isKeyPressed(Keyboard::Space))               //Bullet pressed tracking
-            {
-                if (shootTimer > 20)
-                {
-                    bullet.push_back(magazine(&bulletTexture, player.getPosition()));
-                    shot.play();
-                    shootTimer = 1;
-                }
-            }
-
-           
-
-        }
-       
-  
-                                                                                              //moving background effect
-        background.move(-1.f, 0.f);
-        bg2.move(-1.f, 0.f);
-        
-        if (background.getPosition().x == 0)
-            bg2.setPosition(1100.f , 0.f);
-        if(bg2.getPosition().x == 0)
-            background.setPosition( 1100.f , 0.f);
-
-
-        if (Keyboard::isKeyPressed(Keyboard::Key::A ))                                         //control setup
-        {
-            if(player.getPosition().x>0)
-            player.move(-5.f, 0);
-        }
-        if (Keyboard::isKeyPressed(Keyboard::Key::S ))
-        {
-            if(player.getPosition().y+ player.getSize().y < window.getSize().y)
-            player.move(0, 5.0f);
-        }
-        if (Keyboard::isKeyPressed(Keyboard::Key::D))
-        {
-            if(player.getPosition().x+player.getSize().x < window.getSize().x)
-            player.move(5.f, 0);
-        }
-        if (Keyboard::isKeyPressed(Keyboard::Key::W))
-        {
-            if(player.getPosition().y >0)
-            player.move(0, -5.f);
-        }               
-
-                                                                                                 // all variable laoding time increment
-        shootTimer++;
-        enemyloadTime++;
-        mateorTimer++;
-        time++;
-
-        HP.setSize(Vector2f( (playerHP * 200) / 50.f , 30.f)); //Health dynamic display
-
-        
-
-
-        
-
-        if (mateorTimer > 300)                                                                  //Mateor generating factory
-        {
-            mateor1.push_back(&mateorTexture);
-            mateorTimer = 0;
-        }
-                                                                                                 //Enemy generating factory
-        if (time % 300 == 0)
-        {
-            if (time % 300 == 0)        alien1.push_back(&enemyTex);
-            else if (time % 800 == 0)        alien1.push_back(&enemyTex1);
-            else if (time % 1400 == 0)        alien1.push_back(&enemyTex2);
-            //else if (time % 1100 == 0)        alien1.push_back(&enemyTex3);
-            //else if (time % 1400 == 0)        alien1.push_back(&enemyTex4);
-           // else if (time % 1700 == 0)        alien1.push_back(&enemyTex5);
-        }
-        
-        
-        if (time % 200 == 0)                                                                    //satellite generating factory
-        {
-            if (time % 400 == 0)       satellite.push_back(&satelliteTex1);
-            else if (time % 700 == 0)  satellite.push_back(&satelliteTex2);
-            else if (time % 1100 == 0) { satellite.push_back(&spacestationTex);  }
-            else                       satellite.push_back(&satelliteTex3);
-            
-        }
-
-        
-
-                                                                                               //player bullet collision check
-        if (!bullet.empty())
-        {                                                                                
-            for (size_t i = 0; i < bullet.size(); i++) //for bullet
-            {
-                bool alreadyCollided = false;
-
-                for (size_t j = 0; j < alien1.size(); j++) //for allien
-                {
-                    
-                    if (bullet[i].sprite.getGlobalBounds().intersects(alien1[j].sprite.getGlobalBounds()) ) // is collided with alien?
-                    {
-                        alien1[j].HP--;
-                        alien1[j].sprite.move(10.f, 0.f); //backward force
-                        bullet.erase(bullet.begin() + i);
-                        alreadyCollided = true;
-                        break;
-                    }
                 
-                    if (alien1[j].HP <= 0)
+                    case sf::Event::KeyReleased:
+                    switch (event.key.code)
                     {
-                        point += 3;
-                        alien1.erase(alien1.begin() + j);
-                    }
+                    case sf::Keyboard::Up:
+                        change.play();
+                        menu.MoveUp();
+                        break;
 
-                   // if (bullet[i].sprite.getGlobalBounds() == alien1[j].sprite.getGlobalBounds() )
-                   //    alien1[j].sprite.move(0.f, 5.f);
-                    
-                    
-                }
+                    case sf::Keyboard::Down:
+                        change.play();
+                        menu.MoveDown();
+                        break;
 
-                if (alreadyCollided == false)
-                {
-                    for (size_t k = 0; k < satellite.size(); k++)  //for satellite
-                    {
-                        if (bullet[i].sprite.getGlobalBounds().intersects(satellite[k].sprite.getGlobalBounds()))//is collided with satellite?
+                    case sf::Keyboard::Return:
+                        switch (menu.GetPressed())
                         {
-                            satellite[k].HP--;
-                            satellite[k].sprite.move(10.f, 0.f); //backward force
-                            bullet.erase(bullet.begin() + i);
+                        case 0:
+                            cout << "Play button has been pressed";
+                            select.play();
+                            mainmenu(window);
+                            mainMenu = false;
+                            temp = 1;
+                            break;
+                        case 1:
+                            select.play();
+                            std::cout << "Option button has been pressed" << std::endl;
+                            break;
+                        case 2:
+                            select.play();
+                            window.close();
                             break;
                         }
 
-                        if (satellite[k].HP <= 0)
-                        {
-                            satellite.erase(satellite.begin() + k);
-                            point += 3;
-                        }
+                        break;
                     }
-                }
+
+                
                 
             }
-        }
 
-        for (size_t i = 0; i < eBullet.size(); i++)                                                     //enemy bullet collision check
-        {
-            if (eBullet[i].sprite.getGlobalBounds().intersects(player.getGlobalBounds()))
-            {
-                playerHP--;
-                eBullet.erase(eBullet.begin() + i);
-            }
-        }
+            if(event.type == Event::Closed)
+                window.close();
 
-        for (size_t i = 0; i < alien1.size(); i++)                                                      //alien player collision check
-        {
-            if (alien1[i].sprite.getGlobalBounds().intersects(player.getGlobalBounds()))
-            {
-                playerHP -= 5;
-                alien1.erase(alien1.begin() + i);
-
-            }
-
-            for (size_t j = 0; j < satellite.size(); j++)                                               //satellite alien overlaping check
-            {
-                if (alien1[i].sprite.getGlobalBounds().intersects(satellite[j].sprite.getGlobalBounds()))
+            
+                if ((event.type == Event::MouseButtonPressed && event.key.code == Mouse::Left) || Keyboard::isKeyPressed(Keyboard::Space))               //Bullet pressed tracking
                 {
-                    satellite.erase(satellite.begin() + j); //if overlaped delete it
+                    if (shootTimer > 20)
+                    {
+                        bullet.push_back(magazine(&bulletTexture, player.getPosition()));
+                        shot.play();
+                        shootTimer = 1;
+                    }
+                }
+            
+        }
+
+        if(temp == 1){
+            menuMusic.stop();
+            bgmusic.play();
+            temp = 3;
+
+        }
+       
+      
+            //moving background effect
+            background.move(-1.f, 0.f);
+            bg2.move(-1.f, 0.f);
+
+            if (background.getPosition().x == 0)
+                bg2.setPosition(1100.f, 0.f);
+            if (bg2.getPosition().x == 0)
+                background.setPosition(1100.f, 0.f);
+
+
+            if (Keyboard::isKeyPressed(Keyboard::Key::A))                                         //control setup
+            {
+                if (player.getPosition().x > 0)
+                    player.move(-5.f, 0);
+            }
+            if (Keyboard::isKeyPressed(Keyboard::Key::S))
+            {
+                if (player.getPosition().y + player.getSize().y < window.getSize().y)
+                    player.move(0, 5.0f);
+            }
+            if (Keyboard::isKeyPressed(Keyboard::Key::D))
+            {
+                if (player.getPosition().x + player.getSize().x < window.getSize().x)
+                    player.move(5.f, 0);
+            }
+            if (Keyboard::isKeyPressed(Keyboard::Key::W))
+            {
+                if (player.getPosition().y > 0)
+                    player.move(0, -5.f);
+            }
+
+            // all variable laoding time increment
+            shootTimer++;
+            enemyloadTime++;
+            mateorTimer++;
+            time++;
+
+            HP.setSize(Vector2f((playerHP * 200) / 50.f, 30.f)); //Health dynamic display
+
+
+
+
+
+
+            if (mateorTimer > 300)                                                                  //Mateor generating factory
+            {
+                mateor1.push_back(&mateorTexture);
+                mateorTimer = 0;
+            }
+            //Enemy generating factory
+            if (time % 300 == 0)
+            {
+                if (time % 300 == 0)        alien1.push_back(&enemyTex);
+                else if (time % 800 == 0)        alien1.push_back(&enemyTex1);
+                else if (time % 1400 == 0)        alien1.push_back(&enemyTex2);
+                //else if (time % 1100 == 0)        alien1.push_back(&enemyTex3);
+                //else if (time % 1400 == 0)        alien1.push_back(&enemyTex4);
+               // else if (time % 1700 == 0)        alien1.push_back(&enemyTex5);
+            }
+
+
+            if (time % 200 == 0)                                                                    //satellite generating factory
+            {
+                if (time % 400 == 0)       satellite.push_back(&satelliteTex1);
+                else if (time % 700 == 0)  satellite.push_back(&satelliteTex2);
+                else if (time % 1100 == 0) { satellite.push_back(&spacestationTex); }
+                else                       satellite.push_back(&satelliteTex3);
+
+            }
+
+
+
+            //player bullet collision check
+            if (!bullet.empty())
+            {
+                for (size_t i = 0; i < bullet.size(); i++) //for bullet
+                {
+                    bool alreadyCollided = false;
+
+                    for (size_t j = 0; j < alien1.size(); j++) //for allien
+                    {
+
+                        if (bullet[i].sprite.getGlobalBounds().intersects(alien1[j].sprite.getGlobalBounds())) // is collided with alien?
+                        {
+                            alien1[j].HP--;
+                            alien1[j].sprite.move(10.f, 0.f); //backward force
+                            bullet.erase(bullet.begin() + i);
+                            alreadyCollided = true;
+                            break;
+                        }
+
+                        if (alien1[j].HP <= 0)
+                        {
+                            point += 3;
+                            alien1.erase(alien1.begin() + j);
+                        }
+
+                        // if (bullet[i].sprite.getGlobalBounds() == alien1[j].sprite.getGlobalBounds() )
+                        //    alien1[j].sprite.move(0.f, 5.f);
+
+
+                    }
+
+                    if (alreadyCollided == false)
+                    {
+                        for (size_t k = 0; k < satellite.size(); k++)  //for satellite
+                        {
+                            if (bullet[i].sprite.getGlobalBounds().intersects(satellite[k].sprite.getGlobalBounds()))//is collided with satellite?
+                            {
+                                satellite[k].HP--;
+                                satellite[k].sprite.move(10.f, 0.f); //backward force
+                                bullet.erase(bullet.begin() + i);
+                                break;
+                            }
+
+                            if (satellite[k].HP <= 0)
+                            {
+                                satellite.erase(satellite.begin() + k);
+                                point += 3;
+                            }
+                        }
+                    }
+
+                }
+            }
+
+            for (size_t i = 0; i < eBullet.size(); i++)                                                     //enemy bullet collision check
+            {
+                if (eBullet[i].sprite.getGlobalBounds().intersects(player.getGlobalBounds()))
+                {
+                    playerHP--;
+                    eBullet.erase(eBullet.begin() + i);
+                }
+            }
+
+            for (size_t i = 0; i < alien1.size(); i++)                                                      //alien bullet gen & collision check 
+            {
+
+                for (size_t j = 0; j < satellite.size(); j++)                                               //satellite alien overlaping check
+                {
+                    if (alien1[i].sprite.getGlobalBounds().intersects(satellite[j].sprite.getGlobalBounds()))
+                    {
+                        //satellite.erase(satellite.begin() + j); //if overlaped delete it
+                        satellite[j].sprite.setPosition(alien1[i].sprite.getPosition().x + 200, alien1[i].sprite.getPosition().y + 200);
+                    }
+
+                }
+
+                alien1[i].eBulletLoad++;                                                                  //enemy bullet generating
+
+                if (alien1[i].eBulletLoad > 200) //make a bullet for every alien after 300s of creation
+                {
+                    eBullet.push_back(emagazine(&ebulletTexture, alien1[i].sprite.getPosition()));
+                    alien1[i].eBulletLoad = 0;
+                }
+
+                if (alien1[i].sprite.getGlobalBounds().intersects(player.getGlobalBounds()))              //alien player collision check
+                {
+                    playerHP -= 5;
+                    alien1.erase(alien1.begin() + i);
+
+                }
+            }
+
+            for (size_t i = 0; i < satellite.size(); i++)
+            {
+                if (satellite[i].sprite.getGlobalBounds().intersects(player.getGlobalBounds())) //player satellite collision check
+                {
+                    playerHP -= 5;
+                    satellite.erase(satellite.begin() + i);
+
                 }
 
             }
 
-            alien1[i].eBulletLoad++;                                                                  //enemy bullet generating
-             
-            if (alien1[i].eBulletLoad > 400) //make a bullet for every alien after 100s of creation
-            {
-                eBullet.push_back(emagazine(&ebulletTexture, alien1[i].sprite.getPosition()));
-                alien1[i].eBulletLoad = 0;
-            }
-        }
 
-        for (size_t i = 0; i < satellite.size(); i++)
-        {
-            if (satellite[i].sprite.getGlobalBounds().intersects(player.getGlobalBounds())) //player satellite collision check
-            {
-                playerHP -= 5;
-                satellite.erase(satellite.begin() + i);
-
+                                                                                                //menu background randering
+            if (mainMenu == true) {
+                window.clear();
+                window.draw(menuBackground);
+                menu.draw(window);
+                window.display();
+                continue;
             }
-       
-        }
-        
-        
-        
 
                                                                                                 //Randering section
         window.clear();
-        window.draw(background);
-        window.draw(bg2);
-        window.draw(player);
-                                                                        //alien 1 display
-        for (size_t i = 0; i < alien1.size(); i++)                                             
-        {
-            if (alien1[i].sprite.getPosition().x > -200) alien1[i].sprite.move(-1.f, 0.f); //appeared from behind effect
-            else alien1.erase(alien1.begin() + i);
-              
-            window.draw(alien1[i].sprite);
-        }
-        
-                                             //enemy bullet display
-        if (!eBullet.empty())
-        {
-            for (size_t i = 0; i < eBullet.size(); i++)
-            {
-                eBullet[i].sprite.move(-2.f, 0.f);
 
-                if (eBullet[i].sprite.getPosition().x > -100)
+      
+            window.draw(background);
+            window.draw(bg2);
+
+            for (size_t i = 0; i < mateor1.size(); i++)          //mateor printing
+            {
+                mateor1[i].sprite.move(-1.f, 1.f);
+
+                if (mateor1[i].sprite.getPosition().x > 1100)
                 {
-                    window.draw(eBullet[i].sprite);
+                    mateor1.erase(mateor1.begin() + i); continue;
                 }
-                else eBullet.erase(eBullet.begin() + i);
 
+                window.draw(mateor1[i].sprite);
             }
-        }
-        
 
-        if (!bullet.empty() )                                         //Bullet firing animation of player
-        {
-            for (size_t i = 0; i < bullet.size(); i++)
+            window.draw(player);
+            //alien 1 display
+            for (size_t i = 0; i < alien1.size(); i++)
             {
-                bullet[i].sprite.move(6.f, 0.f);     //position change per frame
+                if (alien1[i].sprite.getPosition().x > -200) alien1[i].sprite.move(-2.f, 0.f); //appeared from behind effect
+                else alien1.erase(alien1.begin() + i);
 
-                if (bullet[i].sprite.getPosition().x < 1200)
+                window.draw(alien1[i].sprite);
+            }
+
+            //enemy bullet display
+            if (!eBullet.empty())
+            {
+                for (size_t i = 0; i < eBullet.size(); i++)
                 {
-                    //bullet.setPosition(magazine[i].first, magazine[i].second);      //bullet dynamic position changing
-                    window.draw(bullet[i].sprite);
+                    eBullet[i].sprite.move(-6.f, 0.f);
+
+                    if (eBullet[i].sprite.getPosition().x > -100)
+                    {
+                        window.draw(eBullet[i].sprite);
+                    }
+                    else eBullet.erase(eBullet.begin() + i);
+
                 }
-                else bullet.erase(bullet.begin() + i);
-                
             }
-        }
 
-       
-        for (size_t i = 0; i < mateor1.size(); i++)          //mateor printing
-        {
-            mateor1[i].sprite.move(-1.f, 1.f);
 
-            if (mateor1[i].sprite.getPosition().x > 1100) 
+            if (!bullet.empty())                                         //Bullet firing animation of player
             {
-                mateor1.erase(mateor1.begin() + i); continue;
+                for (size_t i = 0; i < bullet.size(); i++)
+                {
+                    bullet[i].sprite.move(6.f, 0.f);     //position change per frame
+
+                    if (bullet[i].sprite.getPosition().x < 1200)
+                    {
+                        //bullet.setPosition(magazine[i].first, magazine[i].second);      //bullet dynamic position changing
+                        window.draw(bullet[i].sprite);
+                    }
+                    else bullet.erase(bullet.begin() + i);
+
+                }
             }
 
-            window.draw(mateor1[i].sprite);
-        }
-
-        for (size_t i = 0; i < satellite.size(); i++)      //satellite printing
-        {
-            satellite[i].sprite.move(-1.f, 0.f);
-            //satellite[i].sprite.rotate(2.f);
-
-            if (satellite[i].sprite.getPosition().x < -200)
+            for (size_t i = 0; i < satellite.size(); i++)      //satellite printing
             {
-                satellite.erase(satellite.begin() + i); continue;
+                satellite[i].sprite.move(-2.f, 0.f);
+                //satellite[i].sprite.rotate(2.f);
+
+                if (satellite[i].sprite.getPosition().x < -200)
+                {
+                    satellite.erase(satellite.begin() + i); continue;
+                }
+
+                window.draw(satellite[i].sprite);
             }
 
-            window.draw(satellite[i].sprite);
-        }
-        
-        
-        if (playerHP <= 0)               //player HP check
-        {
-            window.draw(end);
-            window.close();
-        }
+
+            if (playerHP <= 0)               //player HP check
+            {
+                if (point > max_score)
+                {
+                    file.open("high score.txt");
+                    file << point;
+                    file.close();
+                    cout << "High score : " << point;
+
+                }
+                window.close();
+            }
 
 
-        window.draw(score);             //printing score
-        pnt.setString(to_string(point));
-        window.draw(pnt);
+            window.draw(score);             //printing score
+            pnt.setString(to_string(point));
+            window.draw(pnt);
 
-        if (playerHP < 20) HP.setFillColor(Color::Red);     //printing Health
-        window.draw(HPbox);
-        window.draw(HP);
-        health.setString(to_string( (playerHP * 100) / 50 ) );
-        window.draw(health);
-        
+            if (playerHP < 20) HP.setFillColor(Color::Red);     //printing Health
+            window.draw(HPbox);
+            window.draw(HP);
+            health.setString(to_string((playerHP * 100) / 50));
+            window.draw(health);
+
+      
 
         window.display();
     }
