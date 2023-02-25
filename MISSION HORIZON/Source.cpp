@@ -669,7 +669,7 @@ int main()                                                           //main func
 
       
 
-        window.display();
+        window.display(); //game over
     }
 
     return 0;
