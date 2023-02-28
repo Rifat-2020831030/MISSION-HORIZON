@@ -10,22 +10,6 @@ using namespace sf;
 using namespace std;
 
 
-/*
-class player
-{
-public:
-    Sprite sprite;
-    int HP, maxHP;
-
-    player(Texture* texture)
-    {
-        this->maxHP = 100;
-        this->HP = this->maxHP;
-        this->sprite.setTexture(*texture);
-        this->setPosition()
-    }
-};
-*/
 
 int point = 0, max_score = 0;
 bool p = false;
