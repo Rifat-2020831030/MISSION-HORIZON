@@ -10,6 +10,22 @@ using namespace sf;
 using namespace std;
 
 
+/*
+class player
+{
+public:
+    Sprite sprite;
+    int HP, maxHP;
+
+    player(Texture* texture)
+    {
+        this->maxHP = 100;
+        this->HP = this->maxHP;
+        this->sprite.setTexture(*texture);
+        this->setPosition()
+    }
+};
+*/
 
 int point = 0, max_score = 0;
 bool p = false;
@@ -525,18 +541,30 @@ int main()                                                           //main func
             continue;
         }
 
+<<<<<<< HEAD
+        if ( (Keyboard::isKeyPressed(Keyboard::Key::M)) )        //mute function
+=======
         if ( (Keyboard::isKeyPressed(Keyboard::Key::M)) && mute == false)        //mute function
+>>>>>>> 57191964ead92bf32762901db5e3a71265c9589d
         { 
             cout << "m pressed" << endl;
             mute = true;
             bgmusic.pause();
         }
+<<<<<<< HEAD
+        /*
+=======
+>>>>>>> 57191964ead92bf32762901db5e3a71265c9589d
         if ( (Keyboard::isKeyPressed(Keyboard::Key::M)) && mute == true)
         {
             cout << "m pressed" << endl;
             mute = false;
             bgmusic.play();
         }
+<<<<<<< HEAD
+        */
+=======
+>>>>>>> 57191964ead92bf32762901db5e3a71265c9589d
 
         if (Keyboard::isKeyPressed(Keyboard::Key::P)) p = true;
 
