@@ -1,4 +1,4 @@
-#include <SFML/Graphics.hpp> //hello
+#include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
 #include <iostream>
 #include <vector>
@@ -9,6 +9,27 @@
 using namespace sf;
 using namespace std;
 
+
+/*
+class player
+{
+public:
+    Sprite sprite;
+    int HP, maxHP;
+
+    player(Texture* texture)
+    {
+        this->maxHP = 100;
+        this->HP = this->maxHP;
+        this->sprite.setTexture(*texture);
+        this->setPosition()
+    }
+};
+*/
+
+int point = 0, max_score = 0;
+bool p = false;
+fstream file;
 
 class enemy
 {
@@ -27,7 +48,7 @@ public:
         this->sprite.setTexture(*texture);
         this->sprite.setScale(0.5, 0.5);
 
-        this->sprite.setPosition(1100, rand() % (int)(800 - this->sprite.getGlobalBounds().height));
+        this->sprite.setPosition(1100, rand() % 800 );
 
     }
 };
@@ -42,12 +63,12 @@ public:
     {
         this->maxHP = 3;
         this->HP = this->maxHP;
-
+      
         this->sprite.setTexture(*texture);
         this->sprite.setScale(0.2, 0.2);
         this->sprite.setOrigin(this->sprite.getGlobalBounds().width / 2, this->sprite.getGlobalBounds().height / 2);
 
-        this->sprite.setPosition(1100, rand() % (int)800 );
+        this->sprite.setPosition(1100, rand() % 800 );
     }
 };
 
@@ -60,7 +81,7 @@ public:
     {
         this->sprite.setTexture(*texture);
         this->sprite.setScale(1.f, 0.5f);
-        this->sprite.setPosition(position.x+100.f, position.y+25.f);
+        this->sprite.setPosition(position.x+150.f, position.y+50.f);
     }
 };
 class emagazine
@@ -80,15 +101,38 @@ class mateor
 {
 public:
     Sprite sprite;
+    IntRect shape;
 
     mateor(Texture* texture)
     {
+        //(int)(1100 - this->sprite.getGlobalBounds().width)
         this->sprite.setTexture(*texture);
-        this->sprite.setPosition( rand() % (int)(1100 - this->sprite.getGlobalBounds().width), 0.f);
+        this->sprite.setPosition( rand() % 1100 , 0.f);
         this->sprite.setScale(0.5, 0.5);
        
     }
 };
+
+void pause(RenderWindow& window)
+{
+    Texture playbutton;
+    playbutton.loadFromFile("image/play.png");
+
+    Sprite button;
+    button.setTexture(playbutton);
+    button.setPosition(window.getSize().x - 70, 10);
+
+    while (window.isOpen())
+    {
+        if (Keyboard::isKeyPressed(Keyboard::Key::O)) {
+            cout << " O pressed" << endl;
+            p = false;
+            return;
+        }
+        window.draw(button);
+        window.display();
+    }
+}
 
 void mainmenu(RenderWindow& window)
 {
@@ -101,7 +145,7 @@ void mainmenu(RenderWindow& window)
     loading.setOutlineColor(Color::Black);
 
     Texture texture;                                                                   //loading background
-    texture.loadFromFile("30.png");
+    texture.loadFromFile("image/loading.jpg");
     RectangleShape bg(Vector2f(window.getSize().x, window.getSize().y));
     bg.setTexture(&texture);
 
@@ -111,7 +155,7 @@ void mainmenu(RenderWindow& window)
     loadingTxt.setFont(font);
     loadingTxt.setString("Loading...");
     loadingTxt.setCharacterSize(50);
-    loadingTxt.setPosition(window.getSize().x / 2 - 100, window.getSize().y / 2 - 200);
+    loadingTxt.setPosition(window.getSize().x / 2 - 150, window.getSize().y / 2 - 200);
 
 
     while (window.isOpen())
@@ -137,6 +181,106 @@ void mainmenu(RenderWindow& window)
         window.draw(loading);
         window.draw(loadingTxt);
         window.display();
+    } 
+}
+
+void help(RenderWindow& window)
+{
+    Texture t;
+    t.loadFromFile("image/INSTRUCTIONS.png");
+
+    Sprite bg;
+    bg.setTexture(t);
+
+    Font font;                                                              //return text
+    font.loadFromFile("Fonts/Quarterback-6YrgD.otf");
+    Text tx;
+    tx.setFont(font);
+    tx.setString("Press Backspace to return");
+    tx.setPosition(50.f, window.getSize().y - 50);
+
+    while (window.isOpen())
+    {
+        if (Keyboard::isKeyPressed(Keyboard::Key::Backspace))                                         //control setup
+        
+            return;
+        
+        window.draw(bg);
+        window.draw(tx);
+        window.display();
+    }
+}
+
+
+void gameOver(RenderWindow& window)
+{
+    RectangleShape Return(Vector2f(200, 200));                                //return box
+    Return.setPosition(window.getSize().x - 210, window.getSize().y - 120);
+    Return.setFillColor(Color::Blue);
+    Return.setOutlineColor(Color::Black);
+
+    Font font;                                                              //return text
+    font.loadFromFile("Fonts/Quarterback-6YrgD.otf");
+    Text ReturnTxt;
+    ReturnTxt.setFont(font);
+    ReturnTxt.setString("Return");
+    //ReturnTxt.setColor(Color::Black);
+    ReturnTxt.setCharacterSize(30);
+    ReturnTxt.setPosition(window.getSize().x - 190, window.getSize().y - 70);
+
+    Texture texture;                                                                   //game over bg
+    texture.loadFromFile("image/end.jpg");
+    RectangleShape GameOver(Vector2f(window.getSize().x, window.getSize().y));
+    GameOver.setTexture(&texture);
+
+                                                                                        //game over text
+    Text gameoverTxt;
+    gameoverTxt.setFont(font);
+    gameoverTxt.setString("GAME OVER!");
+    //gameoverTxt.setColor(Color::Red);
+    gameoverTxt.setCharacterSize(90);
+    gameoverTxt.setPosition(window.getSize().x / 2 - 400, window.getSize().y / 2 - 150);
+
+    Text t;
+    t.setFont(font);
+    t.setString("Press Backspace to return");
+    t.setPosition( 50.f , window.getSize().y -50);
+   // t.setColor(sf::Color::Black);
+
+    file.open("high score.txt");
+    file >> max_score;
+    file.close();
+
+    Text score, hg;
+    score.setFont(font);
+    hg.setFont(font);
+    score.setPosition(window.getSize().x / 2 -150, window.getSize().y / 2 + 50);
+    hg.setPosition(window.getSize().x / 2 -150, window.getSize().y / 2+ score.getCharacterSize()+50 );
+    score.setString("Your score : " + to_string(point));
+    hg.setString("High Score : " + to_string(max_score));
+
+    while (window.isOpen())
+    {
+        Event event;
+        while (window.pollEvent(event))
+        {
+            if (event.type == Event::Closed)
+                window.close();
+        }
+
+        if (Keyboard::isKeyPressed(Keyboard::Key::Backspace) )                                         //control setup
+        {
+            return;
+        }
+        window.clear();
+        window.draw(GameOver);
+        window.draw(Return);
+        window.draw(gameoverTxt);
+        window.draw(ReturnTxt);
+        window.draw(score);
+        window.draw(hg);
+        window.draw(t);
+        window.display();
     }
 }
 
@@ -146,23 +290,13 @@ int main()                                                           //main func
 
     RenderWindow window(VideoMode(1100, 800), "MISSION HORIZON");   //making window
     window.setFramerateLimit(60);
-
-    bool mainMenu = true;                                                                                       //menu section
+                                                                                   //menu section
     Menu menu(window.getSize().x, window.getSize().y);
 
     Texture texture;
-    texture.loadFromFile("menu.jpg");
+    texture.loadFromFile("image/menu.jpg");
     RectangleShape menuBackground(Vector2f(window.getSize()));
     menuBackground.setTexture(&texture);
-
-    SoundBuffer menuChng;
-    SoundBuffer menuSlct;
-    menuChng.loadFromFile("selection change.wav");
-    menuSlct.loadFromFile("button pressed.wav");
-    Sound select;
-    Sound change;
-    change.setBuffer(menuChng);
-    select.setBuffer(menuSlct);
 
     sf::Music menuMusic;
     menuMusic.openFromFile("menuMusic.wav");
@@ -170,14 +304,13 @@ int main()                                                           //main func
     menuMusic.setLoop(true);
     menuMusic.play();
 
-    int point = 0 , max_score=0;                                    //score setting
-    fstream file;
+                                                                       //score setting
     file.open("high score.txt");
     file >> max_score;
     file.close();
     
     Texture bgtexture;                                              //making background
-    if (!bgtexture.loadFromFile("background.jpg"))
+    if (!bgtexture.loadFromFile("image/background.jpg"))
     {
         cout << "Failed to load background";
         exit(-1);
@@ -194,13 +327,14 @@ int main()                                                           //main func
 
     
     Texture playerTexture;                                          //player loading
-    if (!playerTexture.loadFromFile("image/player.jpg"))
+    if (!playerTexture.loadFromFile("image/spaceship.png"))
     {
         cout << "Failed to load player";
     }
-    RectangleShape player(Vector2f(100.f, 50.f));
+    RectangleShape player(Vector2f(150.f, 150.f));
     player.setTexture(&playerTexture);
     player.setPosition(0.f , 400.f);
+    //player.setScale(0.5, 0.5);
 
 
     sf::Texture bulletTexture;                                      //Loading bullet
@@ -211,8 +345,8 @@ int main()                                                           //main func
     ebulletTexture.loadFromFile("image/bullet1.png");
 
     Texture mateorTexture;                                          //Loading mateor
-    if (!mateorTexture.loadFromFile("mateor1.png")) exit(-1);
-
+    if (!mateorTexture.loadFromFile("image/mateor.png"))
+        cout << "Failed to load mateor" << endl;
 
     
     SoundBuffer shotBuffer;                                         //sound and music effect
@@ -231,9 +365,7 @@ int main()                                                           //main func
     bgmusic.setVolume(10);
 
     
-    Texture enemyTex;                                               // Enemy loading 
-    Texture enemyTex1;
-    Texture enemyTex2;
+    Texture enemyTex, enemyTex1, enemyTex2;                                               // Enemy loading 
     //Texture enemyTex3;
     //Texture enemyTex4;
     //Texture enemyTex5;
@@ -244,10 +376,8 @@ int main()                                                           //main func
     //enemyTex4.loadFromFile("image/alien4.png");
     //enemyTex5.loadFromFile("image/alien5.png");
 
-    Texture satelliteTex1;
-    Texture satelliteTex2;
-    Texture satelliteTex3;
-    Texture spacestationTex;
+    Texture satelliteTex1, satelliteTex2, satelliteTex3, spacestationTex;
+
     satelliteTex1.loadFromFile("image/satellite.png");
     satelliteTex2.loadFromFile("image/satellite1.png");
     satelliteTex3.loadFromFile("image/satellite2.png");
@@ -257,13 +387,26 @@ int main()                                                           //main func
     Font font;                                                      //Font loading
     font.loadFromFile("fonts/space.otf");
 
-    Text score;                                                     //score loading
+    Text score, destroy, destroycnt, pnt;                                                     //score loading
     score.setFont(font);
     score.setString("SCORE : ");
     score.setPosition(10.f, 10.f);
-    Text pnt;
+   
     pnt.setFont(font);
     pnt.setPosition(score.getGlobalBounds().width , 10);
+
+    //play pause button
+    Texture pausebutton;
+    pausebutton.loadFromFile("image/pause.png");
+
+    Sprite button;
+    button.setTexture(pausebutton);
+    button.setPosition(window.getSize().x - 70, 10);
+
+    int destroyCount = 0;
+    destroy.setFont(font);
+    destroy.setString("Satellite destroyed : " + to_string(destroyCount) );
+    destroy.setPosition( 10, score.getCharacterSize()+10 );
 
     RectangleShape HP(Vector2f(200.f, 30.f ) );                     //health display
     HP.setFillColor(Color::Green);
@@ -281,16 +424,36 @@ int main()                                                           //main func
     health.setFillColor(Color::White);
 
      
+    Texture explotex, fueltex;                                                //explotion section
+    explotex.loadFromFile("image/type_B.png");
+    IntRect shape(0, 0, 192, 192);
+    Sprite explotion( explotex, shape);
+    explotion.setPosition(-100, -100);
+    explotion.setScale(0.5, 0.5);
+
+    Sprite explotion1(explotex, shape);
+    explotion1.setPosition(-100, -100);
+    explotion1.setScale(0.5, 0.5);
+
+    Sprite explotion2(explotex, shape);
+    explotion2.setPosition(-100, -100);
+    explotion2.setScale(0.5, 0.5);
+
+    Clock clock;
 
     RectangleShape ebullet(Vector2f(80.f, 20.f));  //enemy bullet
     ebullet.setTexture(&ebulletTexture);
        
                                                //varibale initialization
     int enemyloadTime = 250;
-    int shootTimer = 21;  //player bullet loading time
+    int shootTimer = 15;  //player bullet loading time
     int mateorTimer = 200;
     int time = 0;
     int temp = 0;
+    
+    bool mainMenu = true;
+    bool mute = false;
+    
     
 
     int playerHP = 50;
@@ -310,24 +473,15 @@ int main()                                                           //main func
         while (window.pollEvent(event))                             //event loop
         {
             switch (event.type)                                     //menu control section
-            {
-                /*
-            case sf::Event::Closed:
-                window.close();
-                break;
-                */
-
-                
+            {        
                     case sf::Event::KeyReleased:
                     switch (event.key.code)
                     {
                     case sf::Keyboard::Up:
-                        change.play();
                         menu.MoveUp();
                         break;
 
                     case sf::Keyboard::Down:
-                        change.play();
                         menu.MoveDown();
                         break;
 
@@ -335,18 +489,14 @@ int main()                                                           //main func
                         switch (menu.GetPressed())
                         {
                         case 0:
-                            cout << "Play button has been pressed";
-                            select.play();
                             mainmenu(window);
                             mainMenu = false;
                             temp = 1;
                             break;
                         case 1:
-                            select.play();
-                            std::cout << "Option button has been pressed" << std::endl;
+                            help(window);
                             break;
-                        case 2:
-                            select.play();
+                        case 2:                           
                             window.close();
                             break;
                         }
@@ -362,55 +512,104 @@ int main()                                                           //main func
                 window.close();
 
             
-                if ((event.type == Event::MouseButtonPressed && event.key.code == Mouse::Left) || Keyboard::isKeyPressed(Keyboard::Space))               //Bullet pressed tracking
+                if ((event.type == Event::MouseButtonPressed && event.key.code == Mouse::Left) || Keyboard::isKeyPressed(Keyboard::Space) && mainMenu == false)               //Bullet pressed tracking
                 {
-                    if (shootTimer > 20)
+                    if (shootTimer > 15)
                     {
                         bullet.push_back(magazine(&bulletTexture, player.getPosition()));
                         shot.play();
                         shootTimer = 1;
                     }
                 }
+                
             
         }
 
         if(temp == 1){
             menuMusic.stop();
             bgmusic.play();
-            temp = 3;
+            temp = 0;
 
         }
+
+        //menu background randering
+        if (mainMenu == true) {
+            window.clear();
+            window.draw(menuBackground);
+            menu.draw(window);
+            window.display();
+            continue;
+        }
+
+        if ( (Keyboard::isKeyPressed(Keyboard::Key::M)) && mute == false)        //mute function
+        { 
+            cout << "m pressed" << endl;
+            mute = true;
+            bgmusic.pause();
+        }
+        if ( (Keyboard::isKeyPressed(Keyboard::Key::M)) && mute == true)
+        {
+            cout << "m pressed" << endl;
+            mute = false;
+            bgmusic.play();
+        }
+
+        if (Keyboard::isKeyPressed(Keyboard::Key::P)) p = true;
+
+        if (p == true)
+        {
+            pause(window);
+        }
+        
+
+        if (clock.getElapsedTime().asSeconds() > 0.1f) {                  //animation update
+            if (shape.left >= 12288)
+            {
+                shape.left = 0;
+                explotion.setPosition(-100, -100);
+                explotion1.setPosition(-100, -100);
+                explotion2.setPosition(-100, -100);
+            }
+            else
+                shape.left += 192;
+
+            explotion.setTextureRect(shape);
+            explotion1.setTextureRect(shape);
+            explotion2.setTextureRect(shape);
+            clock.restart();
+        }
        
-      
+
             //moving background effect
-            background.move(-1.f, 0.f);
-            bg2.move(-1.f, 0.f);
+            background.move(-2.f , 0.f);
+            bg2.move(-2.f , 0.f);
 
             if (background.getPosition().x == 0)
                 bg2.setPosition(1100.f, 0.f);
             if (bg2.getPosition().x == 0)
                 background.setPosition(1100.f, 0.f);
 
+           
 
             if (Keyboard::isKeyPressed(Keyboard::Key::A))                                         //control setup
             {
                 if (player.getPosition().x > 0)
-                    player.move(-5.f, 0);
+                    player.move(-7.f, 0);
             }
             if (Keyboard::isKeyPressed(Keyboard::Key::S))
             {
-                if (player.getPosition().y + player.getSize().y < window.getSize().y)
-                    player.move(0, 5.0f);
+                if (player.getPosition().y + player.getSize().y -100 < window.getSize().y )
+                    player.move(0, 7.0f);
             }
             if (Keyboard::isKeyPressed(Keyboard::Key::D))
             {
                 if (player.getPosition().x + player.getSize().x < window.getSize().x)
-                    player.move(5.f, 0);
+                    player.move(7.f, 0);
             }
             if (Keyboard::isKeyPressed(Keyboard::Key::W))
             {
-                if (player.getPosition().y > 0)
-                    player.move(0, -5.f);
+                if (player.getPosition().y > -100)
+                    player.move(0, -7.f);
             }
 
             // all variable laoding time increment
@@ -418,6 +617,8 @@ int main()                                                           //main func
             enemyloadTime++;
             mateorTimer++;
             time++;
+
+            
 
             HP.setSize(Vector2f((playerHP * 200) / 50.f, 30.f)); //Health dynamic display
 
@@ -431,6 +632,12 @@ int main()                                                           //main func
                 mateor1.push_back(&mateorTexture);
                 mateorTimer = 0;
             }
+            /*
+            for (int i = 0; i < mateor1.size(); i++)
+            {
+                mateor1[i].sprite.setTexture(&mateorTexture, IntRect(0, 0, 93.75, 146));
+            }
+            */
             //Enemy generating factory
             if (time % 300 == 0)
             {
@@ -454,7 +661,7 @@ int main()                                                           //main func
 
 
 
-            //player bullet collision check
+                                                                                //player bullet collision check
             if (!bullet.empty())
             {
                 for (size_t i = 0; i < bullet.size(); i++) //for bullet
@@ -466,6 +673,7 @@ int main()                                                           //main func
 
                         if (bullet[i].sprite.getGlobalBounds().intersects(alien1[j].sprite.getGlobalBounds())) // is collided with alien?
                         {
+                        
                             alien1[j].HP--;
                             alien1[j].sprite.move(10.f, 0.f); //backward force
                             bullet.erase(bullet.begin() + i);
@@ -475,7 +683,9 @@ int main()                                                           //main func
 
                         if (alien1[j].HP <= 0)
                         {
+                            
                             point += 3;
+                            explotion.setPosition(alien1[j].sprite.getPosition());
                             alien1.erase(alien1.begin() + j);
                         }
 
@@ -491,6 +701,7 @@ int main()                                                           //main func
                         {
                             if (bullet[i].sprite.getGlobalBounds().intersects(satellite[k].sprite.getGlobalBounds()))//is collided with satellite?
                             {
+                               
                                 satellite[k].HP--;
                                 satellite[k].sprite.move(10.f, 0.f); //backward force
                                 bullet.erase(bullet.begin() + i);
@@ -499,6 +710,8 @@ int main()                                                           //main func
 
                             if (satellite[k].HP <= 0)
                             {
+                                explotion1.setPosition(satellite[k].sprite.getPosition());
+                                destroyCount++;
                                 satellite.erase(satellite.begin() + k);
                                 point += 3;
                             }
@@ -510,6 +723,8 @@ int main()                                                           //main func
 
             for (size_t i = 0; i < eBullet.size(); i++)                                                     //enemy bullet collision check
             {
+               
+
                 if (eBullet[i].sprite.getGlobalBounds().intersects(player.getGlobalBounds()))
                 {
                     playerHP--;
@@ -540,6 +755,7 @@ int main()                                                           //main func
 
                 if (alien1[i].sprite.getGlobalBounds().intersects(player.getGlobalBounds()))              //alien player collision check
                 {
+                    explotion2.setPosition(alien1[i].sprite.getPosition());
                     playerHP -= 5;
                     alien1.erase(alien1.begin() + i);
 
@@ -550,6 +766,8 @@ int main()                                                           //main func
             {
                 if (satellite[i].sprite.getGlobalBounds().intersects(player.getGlobalBounds())) //player satellite collision check
                 {
+                    explotion2.setPosition(satellite[i].sprite.getPosition());
+                    destroyCount++;
                     playerHP -= 5;
                     satellite.erase(satellite.begin() + i);
 
@@ -557,15 +775,8 @@ int main()                                                           //main func
 
             }
 
+        
 
-                                                                                                //menu background randering
-            if (mainMenu == true) {
-                window.clear();
-                window.draw(menuBackground);
-                menu.draw(window);
-                window.display();
-                continue;
-            }
 
                                                                                                 //Randering section
         window.clear();
@@ -587,13 +798,20 @@ int main()                                                           //main func
             }
 
             window.draw(player);
-            //alien 1 display
+
+                                                                //alien 1 display
             for (size_t i = 0; i < alien1.size(); i++)
             {
-                if (alien1[i].sprite.getPosition().x > -200) alien1[i].sprite.move(-2.f, 0.f); //appeared from behind effect
-                else alien1.erase(alien1.begin() + i);
+                alien1[i].sprite.move(-4.f, 0.f);
 
-                window.draw(alien1[i].sprite);
+                if (alien1[i].sprite.getPosition().x > -200) //appeared from behind effect
+                    window.draw(alien1[i].sprite);
+                else
+                {
+                    alien1.erase(alien1.begin() + i);
+                }
+
+               
             }
 
             //enemy bullet display
@@ -601,7 +819,7 @@ int main()                                                           //main func
             {
                 for (size_t i = 0; i < eBullet.size(); i++)
                 {
-                    eBullet[i].sprite.move(-6.f, 0.f);
+                    eBullet[i].sprite.move(-7.f, 0.f);
 
                     if (eBullet[i].sprite.getPosition().x > -100)
                     {
@@ -617,7 +835,7 @@ int main()                                                           //main func
             {
                 for (size_t i = 0; i < bullet.size(); i++)
                 {
-                    bullet[i].sprite.move(6.f, 0.f);     //position change per frame
+                    bullet[i].sprite.move(7.f, 0.f);     //position change per frame
 
                     if (bullet[i].sprite.getPosition().x < 1200)
                     {
@@ -631,7 +849,7 @@ int main()                                                           //main func
 
             for (size_t i = 0; i < satellite.size(); i++)      //satellite printing
             {
-                satellite[i].sprite.move(-2.f, 0.f);
+                satellite[i].sprite.move(-4.f, 0.f);
                 //satellite[i].sprite.rotate(2.f);
 
                 if (satellite[i].sprite.getPosition().x < -200)
@@ -645,31 +863,61 @@ int main()                                                           //main func
 
             if (playerHP <= 0)               //player HP check
             {
+                explotion2.setPosition(player.getPosition());
                 if (point > max_score)
                 {
                     file.open("high score.txt");
                     file << point;
                     file.close();
-                    cout << "High score : " << point;
+                    cout << "You have achieved new High score : " << point;
 
                 }
-                window.close();
+                else
+                {
+                    cout << "High score : " << max_score<<endl;
+                    cout<< "Your score : " << point;
+                }
+
+                bgmusic.pause();          // music change;
+                menuMusic.play();
+
+                gameOver(window);
+                //varibale initialization
+                 enemyloadTime = 250;
+                 shootTimer = 21;  //player bullet loading time
+                 mateorTimer = 200;
+                 time = 0;
+                 temp = 0;
+
+                 mainMenu = true;
+                 p = false;
+                 HP.setFillColor(Color::Green);
+
+                 playerHP = 50;
+                 point = 0;
+                 clock.restart();
             }
 
 
             window.draw(score);             //printing score
             pnt.setString(to_string(point));
             window.draw(pnt);
+            destroy.setString("Satellite destroyed : " + to_string(destroyCount) );
+            window.draw(destroy);
 
             if (playerHP < 20) HP.setFillColor(Color::Red);     //printing Health
             window.draw(HPbox);
             window.draw(HP);
-            health.setString(to_string((playerHP * 100) / 50));
+            health.setString(to_string((playerHP * 100) / 50)); 
             window.draw(health);
 
-      
+            window.draw(explotion);
+            window.draw(explotion1);
+            window.draw(explotion2);
 
-        window.display(); //game over
+            window.draw(button);
+
+        window.display();
     }
 
     return 0;
