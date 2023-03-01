@@ -10,23 +10,6 @@ using namespace sf;
 using namespace std;
 
 
-/*
-class player
-{
-public:
-    Sprite sprite;
-    int HP, maxHP;
-
-    player(Texture* texture)
-    {
-        this->maxHP = 100;
-        this->HP = this->maxHP;
-        this->sprite.setTexture(*texture);
-        this->setPosition()
-    }
-};
-*/
-
 int point = 0, max_score = 0;
 bool p = false;
 fstream file;
@@ -202,9 +185,9 @@ void help(RenderWindow& window)
     while (window.isOpen())
     {
         if (Keyboard::isKeyPressed(Keyboard::Key::Backspace))                                         //control setup
-
+        {
             return;
-
+        }
         window.draw(bg);
         window.draw(tx);
         window.display();
@@ -349,11 +332,14 @@ int main()                                                           //main func
         cout << "Failed to load mateor" << endl;
 
 
-    SoundBuffer shotBuffer;                                         //sound and music effect
+    SoundBuffer shotBuffer, selects;                                         //sound and music effect
     shotBuffer.loadFromFile("sound/laser.ogg");
-    Sound shot;
+    Sound shot,select;
     shot.setBuffer(shotBuffer);
     shot.setVolume(5);
+   
+    selects.loadFromFile("button pressed.wav");
+    select.setBuffer(selects);
 
     Music bgmusic;
     if (!bgmusic.openFromFile("sound/space.wav"))
@@ -497,6 +483,7 @@ int main()                                                           //main func
                         break;
                     case 1:
                         help(window);
+                        select.play();
                         break;
                     case 2:
                         window.close();
@@ -544,14 +531,14 @@ int main()                                                           //main func
         }
 
 
-        if ((Keyboard::isKeyPressed(Keyboard::Key::M)))        //mute function
+        
 
-            if ((Keyboard::isKeyPressed(Keyboard::Key::M)) && mute == false)        //mute function
-            {
-                cout << "m pressed" << endl;
-                mute = true;
-                bgmusic.pause();
-            }
+        if ((Keyboard::isKeyPressed(Keyboard::Key::M)) && mute == false)        //mute function
+        {
+            cout << "m pressed" << endl;
+            mute = true;
+            bgmusic.pause();
+        }
 
         /*
         if ( (Keyboard::isKeyPressed(Keyboard::Key::M)) && mute == true)
@@ -755,7 +742,7 @@ int main()                                                           //main func
 
             alien1[i].eBulletLoad++;                                                                  //enemy bullet generating
 
-            if (alien1[i].eBulletLoad > 200) //make a bullet for every alien after 300s of creation
+            if (alien1[i].eBulletLoad > 150) //make a bullet for every alien after 300s of creation
             {
                 eBullet.push_back(emagazine(&ebulletTexture, alien1[i].sprite.getPosition()));
                 alien1[i].eBulletLoad = 0;
@@ -890,6 +877,7 @@ int main()                                                           //main func
             menuMusic.play();
 
             gameOver(window);
+            select.play();
             //varibale initialization
             enemyloadTime = 250;
             shootTimer = 21;  //player bullet loading time
