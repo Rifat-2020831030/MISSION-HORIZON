@@ -1,1 +1,1 @@
-# MISSION HORIZON : This is a game made from scratch using the c++ library called SFML.
+# MISSION HORIZON : A space shooter single player game made build with C++
